@@ -44,7 +44,13 @@ def build_menu_text(user_obj, balance: float, purchases: int, lang: str) -> str:
         f"{t(lang, 'balance', balance=f'{balance:.2f}')}\n"
         f"{t(lang, 'total_purchases', count=purchases)}\n\n"
         f"{t(lang, 'note')}"
-     )
+    )
+
+
+async def schedule_feedback(bot, user_id: int, lang: str) -> None:
+    """Send feedback prompt 30 minutes after purchase."""
+    await asyncio.sleep(30 * 60)
+    await bot.send_message(user_id, t(lang, 'feedback_service'), reply_markup=feedback_menu('feedback_service'))
 
 
 def build_subcategory_description(parent: str, lang: str) -> str:
@@ -646,7 +652,7 @@ async def buy_item_callback_handler(call: CallbackQuery):
                 f'User {username} purchased {value_data["item_name"]} for {item_price}€'
             )
             lang = get_user_language(user_id) or 'en'
-            await bot.send_message(user_id, t(lang, 'feedback_service'), reply_markup=feedback_menu('feedback_service'))
+            asyncio.create_task(schedule_feedback(bot, user_id, lang))
             return
 
         await bot.edit_message_text(chat_id=call.message.chat.id,
